@@ -12,5 +12,7 @@ private:
 	GLuint _VBO;
 	GLuint _VAO;
 	GLuint _EBO;
+
+	GLuint _texture;
 };
 
