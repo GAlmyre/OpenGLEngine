@@ -3,6 +3,10 @@
 
 #include <GLAD/glad.h>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -12,6 +16,12 @@ class Shader
 {
 public:
 	unsigned int ID;
+
+	Shader() 
+	{
+		ID = -1;
+	};
+
 	// constructor generates the shader on the fly
 	// ------------------------------------------------------------------------
 	Shader(const char* vertexPath, const char* fragmentPath)
@@ -93,6 +103,11 @@ public:
 	void setMat4(const std::string &name, glm::mat4 value) const
 	{
 		glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
+	}
+
+	void setVec3(const std::string &name, glm::vec3 value) const
+	{
+		glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
 	}
 
 private:

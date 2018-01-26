@@ -130,21 +130,29 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="camera\Camera.cpp" />
     <ClCompile Include="glad.c" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="model\Mesh.cpp" />
     <ClCompile Include="stb_image.cpp" />
+    <ClCompile Include="Viewer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="camera\Camera.h" />
+    <ClInclude Include="Light.h" />
+    <ClInclude Include="model\Mesh.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="std_image.h" />
+    <ClInclude Include="Viewer.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="simple.frag" />
-    <None Include="simple.vert" />
+    <None Include="shaders\lamp.frag" />
+    <None Include="shaders\lamp.vert" />
+    <None Include="shaders\pointLight.frag" />
+    <None Include="shaders\pointLight.vert" />
+    <None Include="shaders\simple.frag" />
+    <None Include="shaders\simple.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\Textures\container.jpg" />

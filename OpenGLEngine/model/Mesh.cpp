@@ -1,6 +1,6 @@
 #include "Mesh.h"
 #include <iostream>
-#include "std_image.h"
+#include "../std_image.h"
 
 float vertices[] = {
         -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -48,6 +48,15 @@ float vertices[] = {
 
 Mesh::Mesh()
 {
+}
+
+
+Mesh::~Mesh()
+{
+}
+
+void Mesh::init()
+{
 	glGenVertexArrays(1, &_VAO);
 	glGenBuffers(1, &_VBO);
 	//glGenBuffers(1, &_EBO);
@@ -91,11 +100,6 @@ Mesh::Mesh()
 	glEnableVertexAttribArray(1);
 
 	glBindVertexArray(0);
-}
-
-
-Mesh::~Mesh()
-{
 }
 
 void Mesh::draw() {

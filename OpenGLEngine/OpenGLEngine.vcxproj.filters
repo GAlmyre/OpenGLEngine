@@ -16,6 +16,15 @@
     <Filter Include="shaders">
       <UniqueIdentifier>{49582236-ac9e-4ca6-9f23-9a0b798cfd63}</UniqueIdentifier>
     </Filter>
+    <Filter Include="model">
+      <UniqueIdentifier>{448e0465-4b00-4319-8af6-029ac8ac48cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="camera">
+      <UniqueIdentifier>{be931de8-b58d-41a9-a039-19c87292a9e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lighting">
+      <UniqueIdentifier>{1401f967-612d-41b8-86cf-e58eb6d374ee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -24,35 +33,59 @@
     <ClCompile Include="glad.c">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
-    <ClCompile Include="Mesh.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
     <ClCompile Include="stb_image.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
-    <ClCompile Include="Camera.cpp">
+    <ClCompile Include="Viewer.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="model\Mesh.cpp">
+      <Filter>model</Filter>
+    </ClCompile>
+    <ClCompile Include="camera\Camera.cpp">
+      <Filter>camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Light.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Mesh.h">
+    <ClInclude Include="std_image.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="Viewer.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="Shader.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="std_image.h">
-      <Filter>Fichiers d%27en-tête</Filter>
+    <ClInclude Include="model\Mesh.h">
+      <Filter>model</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
+    <ClInclude Include="camera\Camera.h">
+      <Filter>camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="simple.vert">
+    <None Include="shaders\lamp.frag">
       <Filter>shaders</Filter>
     </None>
-    <None Include="simple.frag">
+    <None Include="shaders\lamp.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\pointLight.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\pointLight.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\simple.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\simple.vert">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

@@ -6,6 +6,8 @@ public:
 	Mesh();
 	~Mesh();
 
+	void init();
+
 	void draw();
 
 private:
