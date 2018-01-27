@@ -70,16 +70,16 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>F:\3D\OpenGLEngine\Ext\Include;$(IncludePath)</IncludePath>
-    <LibraryPath>F:\3D\OpenGLEngine\Ext\Libs;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)/Ext/Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)/Ext/Libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>D:\OpenGL\Libraries\Include;$(IncludePath)</IncludePath>
     <LibraryPath>D:\OpenGL\Libraries\Libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>F:\3D\OpenGLEngine\Ext\Include;$(IncludePath)</IncludePath>
-    <LibraryPath>F:\3D\OpenGLEngine\Ext\Libs;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)/Ext/Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)/Ext/Libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

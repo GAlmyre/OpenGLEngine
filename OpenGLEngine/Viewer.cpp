@@ -67,7 +67,7 @@ int Viewer::setWindow()
 
 void Viewer::renderLoop()
 {
-	_model = new Model("../Models/sponza/sponza.obj");
+	_model = new Model("../Models/sponza2/sponza.obj");
 
 	while (!glfwWindowShouldClose(_window))
 	{
