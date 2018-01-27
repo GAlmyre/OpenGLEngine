@@ -9,6 +9,7 @@ public:
 	glm::vec3 _color = glm::vec3(1.0f, 1.0f, 1.0f);
 	float _intensity = 1.0f;
 
+	Light();
 	Light(glm::vec3 position, float intensity, glm::vec3 color);
 	~Light();
 };

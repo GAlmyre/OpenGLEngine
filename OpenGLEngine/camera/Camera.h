@@ -38,6 +38,8 @@ public:
 
 	float getZoom();
 
+	glm::vec3 getPosition() { return _position; }
+
 	~Camera();
 
 private:

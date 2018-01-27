@@ -7,7 +7,8 @@
 
 #include "camera/Camera.h"
 #include "Shader.h"
-#include "model/Mesh.h"
+#include "model/Model.h"
+#include "Material.h"
 
 // a class to hold the window and camera used to render the world
 class Viewer
@@ -27,12 +28,11 @@ private:
 	GLFWwindow* _window;
 	Shader _pointLightShader;
 	Shader _lampShader;
-	Mesh _cube;
-	Mesh _light;
+	Model* _model;
 
 	// window dimensions
-	int _width = 800;
-	int _height = 600;
+	int _width = 1600;
+	int _height = 900;
 
 	// last mouse position
 	double _mouseLastX;

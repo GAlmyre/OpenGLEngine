@@ -1,8 +1,9 @@
 #include "Viewer.h"
+#include "glm/ext.hpp"
 
 Viewer::Viewer()
 {
-	_cam = Camera(glm::vec3(0.0f, 0.0f, 0.3f));
+	_cam = Camera(glm::vec3(0.0f, 0.0f, 3.0f));
 	setWindow();
 
 	renderLoop();
@@ -58,11 +59,7 @@ int Viewer::setWindow()
 
 	glViewport(0, 0, _width, _height);
 	glEnable(GL_DEPTH_TEST);
-
-	// initialize meshes and shaders
-	_cube.init();
-	_light.init();
-	_pointLightShader = Shader("shaders/pointLight.vert", "shaders/pointLight.frag");
+	_pointLightShader = Shader("shaders/simple.vert", "shaders/simple.frag");
 	_lampShader = Shader("shaders/lamp.vert", "shaders/lamp.frag");
 
 	return 0;
@@ -70,42 +67,31 @@ int Viewer::setWindow()
 
 void Viewer::renderLoop()
 {
-	_pointLightShader.use();
+	_model = new Model("../Models/nanosuit.obj");
 
 	while (!glfwWindowShouldClose(_window))
 	{
 		processInput();
 
+		glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+
 		glClearColor(0.06f, 0.05f, 0.08f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glm::mat4 model, view, projection;
-		model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
 		view = _cam.getViewMatrix();
 		projection = glm::perspective(glm::radians(_cam.getZoom()), (float)_width / (float)_height, 0.1f, 100.0f);
+		model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
+		model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
 
 		_pointLightShader.use();
-		_pointLightShader.setVec3("lightColor", glm::vec3(1,1,1));
-		_pointLightShader.setVec3("objectColor", glm::vec3(.1, .2, 1));
 	
 		// mesh draw
 		_pointLightShader.setMat4("model", model);
 		_pointLightShader.setMat4("view", view);
 		_pointLightShader.setMat4("projection", projection);
-		_cube.draw();
 
-		// light draw
-		_lampShader.use();
-		glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
-		model = glm::mat4(1);
-		model = glm::translate(model, lightPos);
-		model = glm::scale(model, glm::vec3(0.2f));
-
-		_lampShader.setMat4("model", model);
-		_lampShader.setMat4("view", view);
-		_lampShader.setMat4("projection", projection);
-
-		_light.draw();
+		_model->draw(_pointLightShader);
 
 		// check event calls and swap buffers
 		glfwSwapBuffers(_window);

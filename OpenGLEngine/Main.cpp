@@ -7,7 +7,5 @@ int main(int argc, char** argv)
 {
 	Viewer viewer;
 
-	//viewer.renderLoop();
-
 	return 0;
 }
