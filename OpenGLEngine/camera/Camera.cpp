@@ -41,7 +41,16 @@ void Camera::processCameraInput(GLFWwindow * window)
 		_position -= glm::normalize(glm::cross(_front, _up)) * _moveSpeed;
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		_position += glm::normalize(glm::cross(_front, _up)) * _moveSpeed;
-
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+		_moveSpeed += 0.05;
+	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+	{
+		if (_moveSpeed > 0.05)
+			_moveSpeed -= 0.05;
+		else
+			_moveSpeed = 0.01;
+	}
+		
 	updateCameraVectors();
 }
 

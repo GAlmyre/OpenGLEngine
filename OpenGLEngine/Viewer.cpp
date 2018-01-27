@@ -67,7 +67,7 @@ int Viewer::setWindow()
 
 void Viewer::renderLoop()
 {
-	_model = new Model("../Models/nanosuit.obj");
+	_model = new Model("../Models/sponza/sponza.obj");
 
 	while (!glfwWindowShouldClose(_window))
 	{
@@ -80,9 +80,8 @@ void Viewer::renderLoop()
 
 		glm::mat4 model, view, projection;
 		view = _cam.getViewMatrix();
-		projection = glm::perspective(glm::radians(_cam.getZoom()), (float)_width / (float)_height, 0.1f, 100.0f);
-		model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
-		model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
+		projection = glm::perspective(glm::radians(_cam.getZoom()), (float)_width / (float)_height, 0.1f, 1000.0f);
+		model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));	// it's a bit too big for our scene, so scale it down
 
 		_pointLightShader.use();
 	
