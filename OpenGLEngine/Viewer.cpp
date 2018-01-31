@@ -60,7 +60,7 @@ int Viewer::setWindow()
 
 	glViewport(0, 0, _width, _height);
 	glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
 
 	// parse shaders
 	_pointLightShader = Shader("shaders/pointLight.vert", "shaders/pointLight.frag");
@@ -69,7 +69,7 @@ int Viewer::setWindow()
 	_gBufferShader = Shader("shaders/gBuffer.vert", "shaders/gBuffer.frag");
 	
 	// light
-	DirectionalLight dirLight(glm::vec3(100, 501, 00), .6, glm::vec3(1.), glm::vec3(-1, -1, -1));
+	DirectionalLight dirLight(glm::vec3(100, 501, 00), .7, glm::vec3(1), glm::vec3(-1, -1, -1));
 	_dirLights.push_back(dirLight);
 	return 0;
 }
@@ -168,7 +168,7 @@ void Viewer::renderLoop()
 		glBlendEquation(GL_FUNC_ADD);
 		_dirLightShader.setVec3("viewPos", _cam.getPosition());
 
-		// point lights
+		// directional lights
 		for (int i = 0; i < _dirLights.size(); i++)
 		{
 			_dirLightShader.setVec3("light.direction", _dirLights[i]._direction);
