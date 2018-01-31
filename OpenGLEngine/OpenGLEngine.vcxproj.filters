@@ -45,17 +45,20 @@
     <ClCompile Include="camera\Camera.cpp">
       <Filter>camera</Filter>
     </ClCompile>
-    <ClCompile Include="Light.cpp">
-      <Filter>lighting</Filter>
-    </ClCompile>
-    <ClCompile Include="DirectionalLight.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
     <ClCompile Include="Material.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="model\Model.cpp">
       <Filter>model</Filter>
+    </ClCompile>
+    <ClCompile Include="lighting\DirectionalLight.cpp">
+      <Filter>lighting</Filter>
+    </ClCompile>
+    <ClCompile Include="lighting\Light.cpp">
+      <Filter>lighting</Filter>
+    </ClCompile>
+    <ClCompile Include="lighting\PointLight.cpp">
+      <Filter>lighting</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -74,17 +77,20 @@
     <ClInclude Include="camera\Camera.h">
       <Filter>camera</Filter>
     </ClInclude>
-    <ClInclude Include="Light.h">
-      <Filter>lighting</Filter>
-    </ClInclude>
-    <ClInclude Include="DirectionalLight.h">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="Material.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="model\Model.h">
       <Filter>model</Filter>
+    </ClInclude>
+    <ClInclude Include="lighting\DirectionalLight.h">
+      <Filter>lighting</Filter>
+    </ClInclude>
+    <ClInclude Include="lighting\Light.h">
+      <Filter>lighting</Filter>
+    </ClInclude>
+    <ClInclude Include="lighting\PointLight.h">
+      <Filter>lighting</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -100,10 +106,16 @@
     <None Include="shaders\pointLight.vert">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shaders\simple.frag">
+    <None Include="shaders\dirLight.vert">
       <Filter>shaders</Filter>
     </None>
-    <None Include="shaders\simple.vert">
+    <None Include="shaders\dirLight.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\gBuffer.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\gBuffer.vert">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

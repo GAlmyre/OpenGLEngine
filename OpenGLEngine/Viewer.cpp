@@ -3,9 +3,9 @@
 
 Viewer::Viewer()
 {
-	_cam = Camera(glm::vec3(0.0f, 0.0f, 3.0f));
+	_cam = Camera(glm::vec3(0.0f, 10.0f, 3.0f));
 	setWindow();
-
+	initGBuffer();
 	renderLoop();
 }
 
@@ -13,6 +13,7 @@ Viewer::Viewer(int width, int height, Camera & cam)
 	:_width(width), _height(height), _cam(cam) 
 {
 	setWindow();
+	initGBuffer();
 	renderLoop();
 }
 
@@ -59,44 +60,159 @@ int Viewer::setWindow()
 
 	glViewport(0, 0, _width, _height);
 	glEnable(GL_DEPTH_TEST);
-	_pointLightShader = Shader("shaders/simple.vert", "shaders/simple.frag");
-	_lampShader = Shader("shaders/lamp.vert", "shaders/lamp.frag");
+	//glEnable(GL_CULL_FACE);
 
+	// parse shaders
+	_pointLightShader = Shader("shaders/pointLight.vert", "shaders/pointLight.frag");
+	_dirLightShader = Shader("shaders/dirLight.vert", "shaders/dirLight.frag");
+	_lampShader = Shader("shaders/lamp.vert", "shaders/lamp.frag");
+	_gBufferShader = Shader("shaders/gBuffer.vert", "shaders/gBuffer.frag");
+	
+	// light
+	DirectionalLight dirLight(glm::vec3(100, 501, 00), .6, glm::vec3(1.), glm::vec3(-1, -1, -1));
+	_dirLights.push_back(dirLight);
 	return 0;
+}
+
+void Viewer::initGBuffer()
+{
+	// generate and bind the gBuffer
+	glGenFramebuffers(1, &_gBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, _gBuffer);
+
+	// position buffer
+	glGenTextures(1, &_gPosition);
+	glBindTexture(GL_TEXTURE_2D, _gPosition);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, _width, _height, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _gPosition, 0);
+
+	// normal buffer
+	glGenTextures(1, &_gNormal);
+	glBindTexture(GL_TEXTURE_2D, _gNormal);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, _width, _height, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, _gNormal, 0);
+
+	// color + specular buffer
+	glGenTextures(1, &_gColorSpec);
+	glBindTexture(GL_TEXTURE_2D, _gColorSpec);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _width, _height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, _gColorSpec, 0);
+
+	_attachments[0] = GL_COLOR_ATTACHMENT0;
+	_attachments[1] = GL_COLOR_ATTACHMENT1;
+	_attachments[2] = GL_COLOR_ATTACHMENT2;
+
+	glDrawBuffers(3, _attachments);
+
+	glGenRenderbuffers(1, &_rboDepth);
+	glBindRenderbuffer(GL_RENDERBUFFER, _rboDepth);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, _width, _height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _rboDepth);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "Framebuffer not complete!" << std::endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void Viewer::renderLoop()
 {
-	_model = new Model("../Models/sponza2/sponza.obj");
+	_model = new Model("../Models/sponza/sponza.obj");
+
+	Model* sun = new Model("../Models/sphere/sphere.obj");
+
+	_dirLightShader.use();
+	_dirLightShader.setInt("gPosition", 0);
+	_dirLightShader.setInt("gNormal", 1);
+	_dirLightShader.setInt("gColorSpec", 2);
 
 	while (!glfwWindowShouldClose(_window))
 	{
 		processInput();
 
-		glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
-
-		glClearColor(0.06f, 0.05f, 0.08f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		glm::mat4 model, view, projection;
-		view = _cam.getViewMatrix();
-		projection = glm::perspective(glm::radians(_cam.getZoom()), (float)_width / (float)_height, 0.1f, 1000.0f);
-		model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));	// it's a bit too big for our scene, so scale it down
-
-		_pointLightShader.use();
 	
-		// mesh draw
-		_pointLightShader.setMat4("model", model);
-		_pointLightShader.setMat4("view", view);
-		_pointLightShader.setMat4("projection", projection);
+		// fill the gBuffer
+		glBindFramebuffer(GL_FRAMEBUFFER, _gBuffer);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glm::mat4 projection = glm::perspective(glm::radians(_cam.getZoom()), (float)_width / (float)_height, 0.1f, 1000.0f);
+		glm::mat4 view = _cam.getViewMatrix();
+		glm::mat4 model = glm::scale(glm::mat4(1), glm::vec3(0.2, 0.2, 0.2));;
 
-		_model->draw(_pointLightShader);
+		_gBufferShader.use();
+		_gBufferShader.setMat4("projection", projection);
+		_gBufferShader.setMat4("view", view);
+		_gBufferShader.setMat4("model", model);
+		_model->draw(_gBufferShader);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+		// lighting pass
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		_dirLightShader.use();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, _gPosition);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, _gNormal);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, _gColorSpec);
+
+		glDisable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_ONE, GL_ONE);
+		glBlendEquation(GL_FUNC_ADD);
+		_dirLightShader.setVec3("viewPos", _cam.getPosition());
+
+		// point lights
+		for (int i = 0; i < _dirLights.size(); i++)
+		{
+			_dirLightShader.setVec3("light.direction", _dirLights[i]._direction);
+			_dirLightShader.setVec3("light.color", _dirLights[i]._color);
+			_dirLightShader.setFloat("light.intensity", _dirLights[i]._intensity);
+
+			_dirLightShader.setFloat("shininess", 64);
+
+			renderQuad();
+		}
+		glDisable(GL_BLEND);
+		glEnable(GL_DEPTH_TEST);
 		// check event calls and swap buffers
 		glfwSwapBuffers(_window);
 
 		glfwPollEvents();
 	}
+}
+
+void Viewer::renderQuad()
+{
+	if (_quadVAO == 0)
+	{
+		float quadVertices[] = {
+			// positions        // texture Coords
+			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+			1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+			1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+		};
+
+		glGenVertexArrays(1, &_quadVAO);
+		glGenBuffers(1, &_quadVBO);
+		glBindVertexArray(_quadVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, _quadVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	}
+	glBindVertexArray(_quadVAO);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindVertexArray(0);
 }
 
 void Viewer::processInput()
