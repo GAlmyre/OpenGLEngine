@@ -46,7 +46,7 @@ vec3 phong()
 
 void main()
 {
-	vec3 result = light.intensity*phong();
+	vec3 result = light.intensity * phong();
 
     FragColor = vec4(result, 1.0);
 }	

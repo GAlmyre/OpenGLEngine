@@ -1,5 +1,6 @@
 #include "Viewer.h"
 #include "glm/ext.hpp"
+#include <iostream>
 
 Viewer::Viewer()
 {
@@ -69,8 +70,13 @@ int Viewer::setWindow()
 	_gBufferShader = Shader("shaders/gBuffer.vert", "shaders/gBuffer.frag");
 	
 	// light
-	DirectionalLight dirLight(glm::vec3(100, 501, 00), .7, glm::vec3(1), glm::vec3(-1, -1, -1));
+	DirectionalLight dirLight(glm::vec3(100, 501, 00), 0.1f, glm::vec3(1,0,0), glm::vec3(-1, -1, -1));
 	_dirLights.push_back(dirLight);
+	
+	PointLight pointLight(glm::vec3(15., 15., 15.), 1., glm::vec3(1.), 1., 0.045, 0.0075);
+	_pointLights.push_back(pointLight);
+	pointLight = PointLight(glm::vec3(200., 15., 15.), 1., glm::vec3(1.), 1., 0.045, 0.0075);
+	_pointLights.push_back(pointLight);
 	return 0;
 }
 
@@ -131,6 +137,11 @@ void Viewer::renderLoop()
 	_dirLightShader.setInt("gNormal", 1);
 	_dirLightShader.setInt("gColorSpec", 2);
 
+	_pointLightShader.use();
+	_pointLightShader.setInt("gPosition", 0);
+	_pointLightShader.setInt("gNormal", 1);
+	_pointLightShader.setInt("gColorSpec", 2);
+
 	while (!glfwWindowShouldClose(_window))
 	{
 		processInput();
@@ -166,8 +177,8 @@ void Viewer::renderLoop()
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_ONE, GL_ONE);
 		glBlendEquation(GL_FUNC_ADD);
+		
 		_dirLightShader.setVec3("viewPos", _cam.getPosition());
-
 		// directional lights
 		for (int i = 0; i < _dirLights.size(); i++)
 		{
@@ -175,7 +186,33 @@ void Viewer::renderLoop()
 			_dirLightShader.setVec3("light.color", _dirLights[i]._color);
 			_dirLightShader.setFloat("light.intensity", _dirLights[i]._intensity);
 
+			printf("intensity : %f", _dirLights[i]._intensity);
+
 			_dirLightShader.setFloat("shininess", 64);
+
+			renderQuad();
+		}
+
+		// point lights
+		_pointLightShader.use();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, _gPosition);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, _gNormal);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, _gColorSpec);
+		_pointLightShader.setVec3("viewPos", _cam.getPosition());
+		for (int i = 0; i < _pointLights.size(); i++)
+		{
+			_pointLightShader.setVec3("light.position", _pointLights[i]._position);
+			_pointLightShader.setVec3("light.color", _pointLights[i]._color);
+			_pointLightShader.setFloat("light.intensity", _pointLights[i]._intensity);
+			_pointLightShader.setFloat("light.constant", _pointLights[i]._constant);
+			_pointLightShader.setFloat("light.linear", _pointLights[i]._linear);
+			_pointLightShader.setFloat("light.quadratic", _pointLights[i]._quadratic);
+
+
+			_pointLightShader.setFloat("shininess", 64);
 
 			renderQuad();
 		}
