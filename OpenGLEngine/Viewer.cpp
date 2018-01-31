@@ -70,13 +70,16 @@ int Viewer::setWindow()
 	_gBufferShader = Shader("shaders/gBuffer.vert", "shaders/gBuffer.frag");
 	
 	// light
-	DirectionalLight dirLight(glm::vec3(100, 501, 00), 0.1f, glm::vec3(1,0,0), glm::vec3(-1, -1, -1));
+	DirectionalLight dirLight(glm::vec3(100, 501, 00), 0.6f, glm::vec3(1), glm::vec3(-1, -1, -1));
 	_dirLights.push_back(dirLight);
 	
-	PointLight pointLight(glm::vec3(15., 15., 15.), 1., glm::vec3(1.), 1., 0.045, 0.0075);
+	PointLight pointLight(glm::vec3(15., 15., 15.), 1., glm::vec3(0.,0.,1.), 1., 0.045, 0.0075);
 	_pointLights.push_back(pointLight);
-	pointLight = PointLight(glm::vec3(200., 15., 15.), 1., glm::vec3(1.), 1., 0.045, 0.0075);
+	pointLight = PointLight(glm::vec3(120., 15., 15.), 1., glm::vec3(1.,0.,0.), 1., 0.045, 0.0075);
 	_pointLights.push_back(pointLight);
+	pointLight = PointLight(glm::vec3(240., 15., 15.), 1., glm::vec3(0., 1., 0.), 1., 0.045, 0.0075);
+	_pointLights.push_back(pointLight);
+	
 	return 0;
 }
 
@@ -161,6 +164,17 @@ void Viewer::renderLoop()
 		_gBufferShader.setMat4("view", view);
 		_gBufferShader.setMat4("model", model);
 		_model->draw(_gBufferShader);
+
+
+		for (int i = 0; i < _pointLights.size(); i++)
+		{
+			model = glm::translate(glm::mat4(1), _pointLights[i]._position);
+			_gBufferShader.setMat4("projection", projection);
+			_gBufferShader.setMat4("view", view);
+			_gBufferShader.setMat4("model", model);
+			sun->draw(_gBufferShader);
+		}
+
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// lighting pass
@@ -185,8 +199,6 @@ void Viewer::renderLoop()
 			_dirLightShader.setVec3("light.direction", _dirLights[i]._direction);
 			_dirLightShader.setVec3("light.color", _dirLights[i]._color);
 			_dirLightShader.setFloat("light.intensity", _dirLights[i]._intensity);
-
-			printf("intensity : %f", _dirLights[i]._intensity);
 
 			_dirLightShader.setFloat("shininess", 64);
 
@@ -214,7 +226,10 @@ void Viewer::renderLoop()
 
 			_pointLightShader.setFloat("shininess", 64);
 
+			printf("PL nb : %d \n", i);
 			renderQuad();
+
+
 		}
 		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);

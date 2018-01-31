@@ -1,5 +1,5 @@
 #pragma once
-#include "f:\3D\OpenGLEngine\OpenGLEngine\lighting\Light.h"
+#include "Light.h"
 class PointLight :
 	public Light
 {
