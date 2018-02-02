@@ -11,6 +11,7 @@ public:
 
 	Light();
 	Light(glm::vec3 position, float intensity, glm::vec3 color);
+	Light(const Light& light);
 	~Light();
 };
 

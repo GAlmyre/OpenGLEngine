@@ -7,6 +7,7 @@ Viewer::Viewer()
 	_cam = Camera(glm::vec3(0.0f, 10.0f, 3.0f));
 	setWindow();
 	initGBuffer();
+
 	renderLoop();
 }
 
@@ -69,17 +70,6 @@ int Viewer::setWindow()
 	_lampShader = Shader("shaders/lamp.vert", "shaders/lamp.frag");
 	_gBufferShader = Shader("shaders/gBuffer.vert", "shaders/gBuffer.frag");
 	
-	// light
-	DirectionalLight dirLight(glm::vec3(100, 501, 00), 0.6f, glm::vec3(1), glm::vec3(-1, -1, -1));
-	_dirLights.push_back(dirLight);
-	
-	PointLight pointLight(glm::vec3(15., 15., 15.), 1., glm::vec3(0.,0.,1.), 1., 0.045, 0.0075);
-	_pointLights.push_back(pointLight);
-	pointLight = PointLight(glm::vec3(120., 15., 15.), 1., glm::vec3(1.,0.,0.), 1., 0.045, 0.0075);
-	_pointLights.push_back(pointLight);
-	pointLight = PointLight(glm::vec3(240., 15., 15.), 1., glm::vec3(0., 1., 0.), 1., 0.045, 0.0075);
-	_pointLights.push_back(pointLight);
-	
 	return 0;
 }
 
@@ -131,6 +121,21 @@ void Viewer::initGBuffer()
 
 void Viewer::renderLoop()
 {
+	// light
+
+	printf("size : %d", _dirLights.size());
+	//DirectionalLight dirLight(glm::vec3(100.f, 501.f, 100.f), 10.f, glm::vec3(1.f), glm::vec3(-1.f, -1.f, -1.f));
+	DirectionalLight dirLight;
+	_dirLights.push_back(dirLight);
+
+	printf("size : %d", _dirLights.size());
+	PointLight pointLight(glm::vec3(15.f, 15.f, 15.f), 0.f, glm::vec3(0.f, 0.f, 1.f), 1.f, 0.045f, 0.0075f);
+	_pointLights.push_back(pointLight);
+	pointLight = PointLight(glm::vec3(120.f, 15.f, 15.f), 1.f, glm::vec3(1.f, 0.f, 0.f), 1.f, 0.045f, 0.0075f);
+	_pointLights.push_back(pointLight);
+	pointLight = PointLight(glm::vec3(240.f, 15.f, 15.f), 1.f, glm::vec3(0.f, 1.f, 0.f), 1.f, 0.045f, 0.0075f);
+	_pointLights.push_back(pointLight);
+
 	_model = new Model("../Models/sponza/sponza.obj");
 
 	Model* sun = new Model("../Models/sphere/sphere.obj");
@@ -157,7 +162,7 @@ void Viewer::renderLoop()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glm::mat4 projection = glm::perspective(glm::radians(_cam.getZoom()), (float)_width / (float)_height, 0.1f, 1000.0f);
 		glm::mat4 view = _cam.getViewMatrix();
-		glm::mat4 model = glm::scale(glm::mat4(1), glm::vec3(0.2, 0.2, 0.2));;
+		glm::mat4 model = glm::scale(glm::mat4(1), glm::vec3(0.5, 0.5, 0.5));;
 
 		_gBufferShader.use();
 		_gBufferShader.setMat4("projection", projection);
@@ -166,7 +171,7 @@ void Viewer::renderLoop()
 		_model->draw(_gBufferShader);
 
 
-		for (int i = 0; i < _pointLights.size(); i++)
+		for (unsigned int i = 0; i < _pointLights.size(); i++)
 		{
 			model = glm::translate(glm::mat4(1), _pointLights[i]._position);
 			_gBufferShader.setMat4("projection", projection);
@@ -194,11 +199,12 @@ void Viewer::renderLoop()
 		
 		_dirLightShader.setVec3("viewPos", _cam.getPosition());
 		// directional lights
-		for (int i = 0; i < _dirLights.size(); i++)
+		for (unsigned int i = 0; i < _dirLights.size(); i++)
 		{
 			_dirLightShader.setVec3("light.direction", _dirLights[i]._direction);
 			_dirLightShader.setVec3("light.color", _dirLights[i]._color);
 			_dirLightShader.setFloat("light.intensity", _dirLights[i]._intensity);
+			//printf("light intensity : %f \n", _dirLights[i]._intensity);
 
 			_dirLightShader.setFloat("shininess", 64);
 
@@ -214,7 +220,7 @@ void Viewer::renderLoop()
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, _gColorSpec);
 		_pointLightShader.setVec3("viewPos", _cam.getPosition());
-		for (int i = 0; i < _pointLights.size(); i++)
+		for (unsigned int i = 0; i < _pointLights.size(); i++)
 		{
 			_pointLightShader.setVec3("light.position", _pointLights[i]._position);
 			_pointLightShader.setVec3("light.color", _pointLights[i]._color);
@@ -225,11 +231,7 @@ void Viewer::renderLoop()
 
 
 			_pointLightShader.setFloat("shininess", 64);
-
-			printf("PL nb : %d \n", i);
 			renderQuad();
-
-
 		}
 		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);

@@ -10,6 +10,7 @@ public:
 
 	DirectionalLight();
 	DirectionalLight(glm::vec3 position, float intensity, glm::vec3 color, glm::vec3 direction);
+	DirectionalLight(const DirectionalLight& light);
 	~DirectionalLight();
 };
 
