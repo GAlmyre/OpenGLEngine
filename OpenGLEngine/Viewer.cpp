@@ -119,26 +119,96 @@ void Viewer::initGBuffer()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Viewer::renderLoop()
+void Viewer::initShadowMap()
 {
-	// light
+	// creates the texture that will hold the depth values from the light's perspective
+	glGenFramebuffers(1, &_shadowFBO);
 
-	printf("size : %d", _dirLights.size());
-	//DirectionalLight dirLight(glm::vec3(100.f, 501.f, 100.f), 10.f, glm::vec3(1.f), glm::vec3(-1.f, -1.f, -1.f));
-	DirectionalLight dirLight;
+	glGenTextures(1, &_shadowMap);
+	glBindTexture(GL_TEXTURE_2D, _shadowMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, _width, _height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, _shadowFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _shadowMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Viewer::initLights()
+{
+	DirectionalLight dirLight(glm::vec3(100.f, 501.f, 100.f), .3f, glm::vec3(1.f), glm::vec3(-1.f, -1.f, -1.f));
 	_dirLights.push_back(dirLight);
 
-	printf("size : %d", _dirLights.size());
 	PointLight pointLight(glm::vec3(15.f, 15.f, 15.f), 0.f, glm::vec3(0.f, 0.f, 1.f), 1.f, 0.045f, 0.0075f);
 	_pointLights.push_back(pointLight);
 	pointLight = PointLight(glm::vec3(120.f, 15.f, 15.f), 1.f, glm::vec3(1.f, 0.f, 0.f), 1.f, 0.045f, 0.0075f);
 	_pointLights.push_back(pointLight);
 	pointLight = PointLight(glm::vec3(240.f, 15.f, 15.f), 1.f, glm::vec3(0.f, 1.f, 0.f), 1.f, 0.045f, 0.0075f);
 	_pointLights.push_back(pointLight);
+}
+
+void Viewer::geometryPass()
+{
+	// fill the gBuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, _gBuffer);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glm::mat4 projection = glm::perspective(glm::radians(_cam.getZoom()), (float)_width / (float)_height, 0.1f, 2000.0f);
+	glm::mat4 view = _cam.getViewMatrix();
+	glm::mat4 model = glm::scale(glm::mat4(1), glm::vec3(0.2, 0.2, 0.2));;
+
+	_gBufferShader.use();
+	_gBufferShader.setMat4("projection", projection);
+	_gBufferShader.setMat4("view", view);
+	_gBufferShader.setMat4("model", model);
+	_model->draw(_gBufferShader);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+}
+
+void Viewer::lightPass()
+{
+	_dirLightShader.use();
+	_dirLightShader.setVec3("viewPos", _cam.getPosition());
+	// directional lights
+	for (unsigned int i = 0; i < _dirLights.size(); i++)
+	{
+		_dirLightShader.setVec3("light.direction", _dirLights[i]._direction);
+		_dirLightShader.setVec3("light.color", _dirLights[i]._color);
+		_dirLightShader.setFloat("light.intensity", _dirLights[i]._intensity);
+
+		_dirLightShader.setFloat("shininess", 64);
+
+		renderQuad();
+	}
+
+	// point lights
+	_pointLightShader.use();
+	_pointLightShader.setVec3("viewPos", _cam.getPosition());
+	for (unsigned int i = 0; i < _pointLights.size(); i++)
+	{
+		_pointLightShader.setVec3("light.position", _pointLights[i]._position);
+		_pointLightShader.setVec3("light.color", _pointLights[i]._color);
+		_pointLightShader.setFloat("light.intensity", _pointLights[i]._intensity);
+		_pointLightShader.setFloat("light.constant", _pointLights[i]._constant);
+		_pointLightShader.setFloat("light.linear", _pointLights[i]._linear);
+		_pointLightShader.setFloat("light.quadratic", _pointLights[i]._quadratic);
+
+
+		_pointLightShader.setFloat("shininess", 64);
+		renderQuad();
+	}
+}
+
+void Viewer::renderLoop()
+{
+	initLights();
 
 	_model = new Model("../Models/sponza/sponza.obj");
-
-	Model* sun = new Model("../Models/sphere/sphere.obj");
 
 	_dirLightShader.use();
 	_dirLightShader.setInt("gPosition", 0);
@@ -156,35 +226,18 @@ void Viewer::renderLoop()
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-		// fill the gBuffer
-		glBindFramebuffer(GL_FRAMEBUFFER, _gBuffer);
+
+		geometryPass();
+		/*float near_plane = 1.0f, far_plane = 7.5f;
+		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+
+
+		glBindFramebuffer(GL_FRAMEBUFFER, _shadowFBO);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		*/
+		// lighting pass setup
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glm::mat4 projection = glm::perspective(glm::radians(_cam.getZoom()), (float)_width / (float)_height, 0.1f, 1000.0f);
-		glm::mat4 view = _cam.getViewMatrix();
-		glm::mat4 model = glm::scale(glm::mat4(1), glm::vec3(0.5, 0.5, 0.5));;
-
-		_gBufferShader.use();
-		_gBufferShader.setMat4("projection", projection);
-		_gBufferShader.setMat4("view", view);
-		_gBufferShader.setMat4("model", model);
-		_model->draw(_gBufferShader);
-
-
-		for (unsigned int i = 0; i < _pointLights.size(); i++)
-		{
-			model = glm::translate(glm::mat4(1), _pointLights[i]._position);
-			_gBufferShader.setMat4("projection", projection);
-			_gBufferShader.setMat4("view", view);
-			_gBufferShader.setMat4("model", model);
-			sun->draw(_gBufferShader);
-		}
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		// lighting pass
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		_dirLightShader.use();
+		
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, _gPosition);
 		glActiveTexture(GL_TEXTURE1);
@@ -197,44 +250,11 @@ void Viewer::renderLoop()
 		glBlendFunc(GL_ONE, GL_ONE);
 		glBlendEquation(GL_FUNC_ADD);
 		
-		_dirLightShader.setVec3("viewPos", _cam.getPosition());
-		// directional lights
-		for (unsigned int i = 0; i < _dirLights.size(); i++)
-		{
-			_dirLightShader.setVec3("light.direction", _dirLights[i]._direction);
-			_dirLightShader.setVec3("light.color", _dirLights[i]._color);
-			_dirLightShader.setFloat("light.intensity", _dirLights[i]._intensity);
-			//printf("light intensity : %f \n", _dirLights[i]._intensity);
+		lightPass();
 
-			_dirLightShader.setFloat("shininess", 64);
-
-			renderQuad();
-		}
-
-		// point lights
-		_pointLightShader.use();
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, _gPosition);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, _gNormal);
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, _gColorSpec);
-		_pointLightShader.setVec3("viewPos", _cam.getPosition());
-		for (unsigned int i = 0; i < _pointLights.size(); i++)
-		{
-			_pointLightShader.setVec3("light.position", _pointLights[i]._position);
-			_pointLightShader.setVec3("light.color", _pointLights[i]._color);
-			_pointLightShader.setFloat("light.intensity", _pointLights[i]._intensity);
-			_pointLightShader.setFloat("light.constant", _pointLights[i]._constant);
-			_pointLightShader.setFloat("light.linear", _pointLights[i]._linear);
-			_pointLightShader.setFloat("light.quadratic", _pointLights[i]._quadratic);
-
-
-			_pointLightShader.setFloat("shininess", 64);
-			renderQuad();
-		}
 		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
+
 		// check event calls and swap buffers
 		glfwSwapBuffers(_window);
 

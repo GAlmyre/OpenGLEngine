@@ -50,6 +50,10 @@ private:
 	GLuint _rboDepth;
 	GLuint _quadVAO, _quadVBO;
 
+	// shadows
+	GLuint _shadowFBO;
+	GLuint _shadowMap;
+
 	// window dimensions
 	int _width = 1600;
 	int _height = 900;
@@ -63,6 +67,18 @@ private:
 
 	// set up the gBuffer for deferred shading
 	void initGBuffer();
+
+	// set the shadow map texture
+	void initShadowMap();
+
+	// set up the lights in the vectors
+	void initLights();
+
+	// fill the deferred rendering textures with geometry data
+	void geometryPass();
+
+	// light shading
+	void lightPass();
 
 	// handle keystrokes
 	void processInput();
